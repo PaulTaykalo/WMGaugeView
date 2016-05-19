@@ -37,3 +37,11 @@
 - (BOOL)needleLayer:(CALayer*)layer willMoveAnimated:(BOOL)animated duration:(NSTimeInterval)duration animation:(CAKeyframeAnimation*)animation;
 
 @end
+
+@protocol WMGaugeMultipleNeedlesViewStyle <NSObject>
+@optional
+- (void)drawAdditionalItemsOnLayer:(CALayer*)layer inRect:(CGRect)rect;
+
+@required
+- (void)drawNeedleWithName:(NSString *)needleName onLayer:(CALayer*)layer inRect:(CGRect)rect;
+@end

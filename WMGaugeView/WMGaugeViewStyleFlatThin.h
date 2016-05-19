@@ -8,6 +8,6 @@
 #import <Foundation/Foundation.h>
 #import "WMGaugeViewStyle.h"
 
-@interface WMGaugeViewStyleFlatThin : NSObject<WMGaugeViewStyle>
+@interface WMGaugeViewStyleFlatThin : NSObject<WMGaugeViewStyle,WMGaugeMultipleNeedlesViewStyle>
 
 @end
