@@ -16,12 +16,12 @@
     CGRect faceRect;
     CGRect rangeLabelsRect;
     CGRect scaleRect;
-
+    
     /* View center */
     CGPoint center;
-
+    
     /* Scale variables */
-    CGFloat scaleRotation;    
+    CGFloat scaleRotation;
     CGFloat divisionValue;
     CGFloat subdivisionValue;
     CGFloat subdivisionAngle;
@@ -32,7 +32,7 @@
     /* Needle layer */
     NSArray<CALayer *> *rootNeedleLayers;
     CALayer *additionalItemsLayer;
-
+    
     /* Animation completion */
     void (^animationCompletion)(BOOL);
 }
@@ -83,7 +83,7 @@
     _values = @[@(0.0)];
     _minValue = 0.0;
     _maxValue = 240.0;
-
+    
     background = nil;
     
     _showRangeLabels = NO;
@@ -107,7 +107,7 @@
     _showUnitOfMeasurement = NO;
     
     animationCompletion = nil;
-
+    
     [self initDrawingRects];
     [self initScale];
 }
@@ -145,7 +145,7 @@
 #pragma mark - Drawing
 
 /**
- * Main drawing entry point 
+ * Main drawing entry point
  */
 - (void)drawRect:(CGRect)rect
 {
@@ -157,7 +157,7 @@
         
         // Scale context for [0-1] drawings
         CGContextScaleCTM(context, rect.size.width , rect.size.height);
-
+        
         // Draw gauge background in image context
         [self drawGauge:context];
         
@@ -169,44 +169,47 @@
     // Drawing background in view
     [background drawInRect:rect];
     
-    if (!rootNeedleLayers || rootNeedleLayers.count != self.values.count) {
-        [self invalidateNeedles];
-        NSMutableArray * layers = [NSMutableArray array];
-        NSUInteger index = 0;
-        for (__unused NSNumber * value in self.values) {
-            // Initialize needle layer
-            CALayer * rootNeedleLayer = [CALayer new];
-
-            // For performance purpose, the needle layer is not scaled to [0-1] range
-            rootNeedleLayer.frame = self.bounds;
-            [self.layer addSublayer:rootNeedleLayer];
-
-            // Draw needle
-            NSString * needleName = self.needleNames.count > index ? self.needleNames[index] : nil;
-            [self drawNeedleOnLayer:rootNeedleLayer needleName:needleName];
-
-            // Set needle current value
-            [layers addObject:rootNeedleLayer];
-            index++;
-        }
-
-        if ([_style conformsToProtocol:@protocol(WMGaugeMultipleNeedlesViewStyle)]) {
-            id <WMGaugeMultipleNeedlesViewStyle> multipleNeedlesStyle = (id <WMGaugeMultipleNeedlesViewStyle>) _style;
-            if ([multipleNeedlesStyle respondsToSelector:@selector(drawAdditionalItemsOnLayer:inRect:)]) {
-                additionalItemsLayer = [CALayer new];
-
-                // For performance purpose, the needle layer is not scaled to [0-1] range
-                additionalItemsLayer.frame = self.bounds;
-
-                [self.layer addSublayer:additionalItemsLayer];
-
-                [multipleNeedlesStyle drawAdditionalItemsOnLayer:additionalItemsLayer inRect:rect];
-            }
-        }
-
-        [self setValues:self.values animated:NO];
-        rootNeedleLayers = layers;
+    if (!rootNeedleLayers) {
+        [self recreatNeedlesWithRect:rect];
     }
+}
+
+- (void)recreatNeedlesWithRect:(CGRect)rect {
+    [self invalidateNeedles];
+    NSMutableArray *layers = [NSMutableArray array];
+    NSUInteger index = 0;
+    for (__unused NSNumber *value in self.values) {
+        // Initialize needle layer
+        CALayer *rootNeedleLayer = [CALayer new];
+        
+        // For performance purpose, the needle layer is not scaled to [0-1] range
+        rootNeedleLayer.frame = self.bounds;
+        [self.layer addSublayer:rootNeedleLayer];
+        
+        // Draw needle
+        NSString *needleName = self.needleNames.count > index ? self.needleNames[index] : nil;
+        [self drawNeedleOnLayer:rootNeedleLayer needleName:needleName];
+        
+        // Set needle current value
+        [layers addObject:rootNeedleLayer];
+        index++;
+    }
+    
+    if ([_style conformsToProtocol:@protocol(WMGaugeMultipleNeedlesViewStyle)]) {
+        id <WMGaugeMultipleNeedlesViewStyle> multipleNeedlesStyle = (id <WMGaugeMultipleNeedlesViewStyle>) _style;
+        if ([multipleNeedlesStyle respondsToSelector:@selector(drawAdditionalItemsOnLayer:inRect:)]) {
+            additionalItemsLayer = [CALayer new];
+            
+            // For performance purpose, the needle layer is not scaled to [0-1] range
+            additionalItemsLayer.frame = self.bounds;
+            
+            [self.layer addSublayer:additionalItemsLayer];
+            
+            [multipleNeedlesStyle drawAdditionalItemsOnLayer:additionalItemsLayer inRect:rect];
+        }
+    }
+    rootNeedleLayers = layers;
+    [self setValues:self.values animated:NO];
 }
 
 /**
@@ -215,16 +218,16 @@
 - (void)drawGauge:(CGContextRef)context
 {
     [self drawRim:context];
-
+    
     if (_showInnerBackground)
         [self drawFace:context];
-
+    
     if (_showUnitOfMeasurement)
         [self drawText:context];
-
+    
     if (_showScale)
         [self drawScale:context];
-
+    
     if (_showRangeLabels)
         [self drawRangeLabels:context];
 }
@@ -259,12 +262,12 @@
     NSAttributedString* attrStr = [[NSAttributedString alloc] initWithString:_unitOfMeasurement attributes:stringAttrs];
     CGSize fontWidth;
     fontWidth = [_unitOfMeasurement sizeWithAttributes:stringAttrs];
-
+    
     [attrStr drawAtPoint:CGPointMake(0.5 - fontWidth.width / 2.0, _unitOfMeasurementVerticalOffset)];
 }
 
 /**
- * Scale drawing 
+ * Scale drawing
  */
 - (void)drawScale:(CGContextRef)context
 {
@@ -336,7 +339,7 @@
 }
 
 /**
- * scale range labels drawing 
+ * scale range labels drawing
  */
 - (void)drawRangeLabels:(CGContextRef)context
 {
@@ -346,7 +349,7 @@
     
     CGFloat maxAngle = _scaleEndAngle - _scaleStartAngle;
     CGFloat lastStartAngle = 0.0f;
-
+    
     for (NSUInteger i = 0; i < _rangeValues.count; i ++)
     {
         // Range value
@@ -372,14 +375,14 @@
 }
 
 /**
- * Needle drawing 
+ * Needle drawing
  */
 - (void)drawNeedleOnLayer:(CALayer *)needleLayer needleName:(NSString *)needleName
 {
     if ([_style conformsToProtocol:@protocol(WMGaugeMultipleNeedlesViewStyle)]) {
         id <WMGaugeMultipleNeedlesViewStyle> multipleNeedlesView = (id <WMGaugeMultipleNeedlesViewStyle>) _style;
         [multipleNeedlesView drawNeedleWithName:needleName onLayer:needleLayer inRect:self.bounds];
-
+        
     } else if ([_style conformsToProtocol:@protocol(WMGaugeViewStyle)]) {
         [_style drawNeedleOnLayer:needleLayer inRect:self.bounds];
     }
@@ -456,7 +459,7 @@
     float perimeter = 2 * M_PI * radius;
     float textAngle = textSize.width / perimeter * 2 * M_PI * _rangeLabelsFontKerning;
     float offset = ((endAngle - startAngle) - textAngle) / 2.0;
-
+    
     float letterPosition = 0;
     NSString *lastLetter = @"";
     
@@ -481,7 +484,7 @@
         CGAffineTransform rotationTransform = CGAffineTransformMakeRotation(angle + M_PI_2);
         CGContextConcatCTM(context, rotationTransform);
         CGContextTranslateCTM(context, -letterPoint.x, -letterPoint.y);
-
+        
         [attrStr drawAtPoint:CGPointMake(letterPoint.x - charSize.width/2 , letterPoint.y - charSize.height)];
         
         CGContextRestoreGState(context);
@@ -536,6 +539,10 @@
     _values = updatedValues;
 }
 
+- (void)setValues:(NSArray<NSNumber *> *)values {
+    [self setValues:values animated:YES];
+}
+
 - (void)setValue:(float)value animated:(BOOL)animated
 {
     [self setValues:@[@(value)] animated:animated];
@@ -585,47 +592,44 @@
  */
 - (void)setValues:(NSArray<NSNumber *> *)values animated:(BOOL)animated duration:(NSTimeInterval)duration completion:(void (^)(BOOL finished))completion
 {
-    if (rootNeedleLayers && rootNeedleLayers.count != values.count) {
-        [self invalidateNeedles];
-    }
     animationCompletion = completion;
-
+    
     NSArray *lastValues = self.values;
-
+    
     [self updateValues:values];
-
+    
     NSArray* updatedValues = self.values;
-
+    
     for (NSUInteger i = 0; i < updatedValues.count; ++i) {
         CALayer *rootNeedleLayer = rootNeedleLayers.count > i ? rootNeedleLayers[i] : nil;
         if (!rootNeedleLayer) {
             continue;
         }
-
+        
         double lastValue = [lastValues[i] doubleValue];
         double updatedValue = [updatedValues[i] doubleValue];
         double movingValue = ((lastValue + (updatedValue - lastValue) / 2.0) >= 0) ? (updatedValue - lastValue) / 2.0 : (lastValue - updatedValue) / 2.0;
         double middleValue = lastValue + movingValue;
-
+        
         // Needle animation to target values
         // An intermediate "middle" values is used to make sure the needle will follow the right rotation direction
-
+        
         CAKeyframeAnimation *animation = [CAKeyframeAnimation animationWithKeyPath:@"transform"];
         animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
         animation.removedOnCompletion = YES;
         animation.duration = animated ? duration : 0.0;
         animation.delegate = self;
         animation.values = @[[NSValue valueWithCATransform3D:CATransform3DMakeRotation([self needleAngleForValue:lastValue], 0, 0, 1.0)],
-            [NSValue valueWithCATransform3D:CATransform3DMakeRotation([self needleAngleForValue:middleValue], 0, 0, 1.0)],
-            [NSValue valueWithCATransform3D:CATransform3DMakeRotation([self needleAngleForValue:updatedValue], 0, 0, 1.0)]];
-
+                             [NSValue valueWithCATransform3D:CATransform3DMakeRotation([self needleAngleForValue:middleValue], 0, 0, 1.0)],
+                             [NSValue valueWithCATransform3D:CATransform3DMakeRotation([self needleAngleForValue:updatedValue], 0, 0, 1.0)]];
+        
         if (![_style conformsToProtocol:@protocol(WMGaugeViewStyle)] || ![_style needleLayer:rootNeedleLayer willMoveAnimated:animated duration:duration animation:animation])
         {
             rootNeedleLayer.transform = [[animation.values lastObject] CATransform3DValue];
             [rootNeedleLayer addAnimation:animation forKey:kCATransition];
         }
     }
-
+    
 }
 
 #pragma mark - CAAnimation delegate
@@ -846,6 +850,14 @@
     _unitOfMeasurementColor = unitOfMeasurementColor;
     [self invalidateBackground];
 }
+
+- (void)setNeedleNames:(NSArray *)needleNames {
+    if (![_needleNames isEqualToArray:needleNames]) {
+        _needleNames = needleNames;
+        [self invalidateNeedles];
+    }
+}
+
 
 - (void)setRangeLabelsFontColor:(UIColor *)rangeLabelsFontColor
 {
