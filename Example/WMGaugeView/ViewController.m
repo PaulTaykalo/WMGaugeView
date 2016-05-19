@@ -51,6 +51,7 @@
     _gaugeView2.scaleSubdivisionsLength = 0.04;
     _gaugeView2.scaleDivisionsWidth = 0.007;
     _gaugeView2.scaleDivisionsLength = 0.07;
+    _gaugeView2.needleNames = @[@"red", @"orange", @"yellow", @"green", @"blue"];
     
     [NSTimer scheduledTimerWithTimeInterval:2.0
                                      target:self
@@ -62,7 +63,13 @@
 -(void)gaugeUpdateTimer:(NSTimer *)timer
 {
     _gaugeView.value = rand()%(int)_gaugeView.maxValue;
-    [_gaugeView2 setValue:rand()%(int)_gaugeView2.maxValue animated:YES duration:1.6 completion:^(BOOL finished) {
+    [_gaugeView2 setValues:@[
+        @(rand() % (int) _gaugeView2.maxValue)
+        , @(rand() % (int) _gaugeView2.maxValue)
+        , @(rand() % (int) _gaugeView2.maxValue)
+        , @(rand() % (int) _gaugeView2.maxValue)
+        , @(rand() % (int) _gaugeView2.maxValue)
+    ] animated:YES duration:1.6 completion:^(BOOL finished) {
         NSLog(@"gaugeView2 animation complete");
     }];
 }
