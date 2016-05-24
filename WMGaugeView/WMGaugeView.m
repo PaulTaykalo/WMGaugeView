@@ -606,7 +606,7 @@
             continue;
         }
         
-        double lastValue = [lastValues[i] doubleValue];
+        double lastValue = i < lastValues.count ? [lastValues[i] doubleValue] : [updatedValues[i] doubleValue];
         double updatedValue = [updatedValues[i] doubleValue];
         double movingValue = ((lastValue + (updatedValue - lastValue) / 2.0) >= 0) ? (updatedValue - lastValue) / 2.0 : (lastValue - updatedValue) / 2.0;
         double middleValue = lastValue + movingValue;
