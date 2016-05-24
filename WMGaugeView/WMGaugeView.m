@@ -291,7 +291,7 @@
         float mod = divisionsForValue - floorf(divisionsForValue);
         
         // Division
-        if ((fabsf(mod - 0) <= CGFLOAT_MIN) || (fabsf(mod - div) <= CGFLOAT_MIN))
+        if ((fabsf(mod - 0) <= 0.0001) || (fabsf(mod - div) <= 0.0001) || _scaleSubdivisions == 1)
         {
             // Initialize Core Graphics settings
             UIColor *color = (_rangeValues && _rangeColors) ? [self rangeColorForValue:value] : _scaleDivisionColor;
@@ -619,9 +619,16 @@
         animation.removedOnCompletion = YES;
         animation.duration = animated ? duration : 0.0;
         animation.delegate = self;
-        animation.values = @[[NSValue valueWithCATransform3D:CATransform3DMakeRotation([self needleAngleForValue:lastValue], 0, 0, 1.0)],
-                             [NSValue valueWithCATransform3D:CATransform3DMakeRotation([self needleAngleForValue:middleValue], 0, 0, 1.0)],
-                             [NSValue valueWithCATransform3D:CATransform3DMakeRotation([self needleAngleForValue:updatedValue], 0, 0, 1.0)]];
+        
+        // Get first value from currently running animation if any
+        NSNumber *currentLayerRotation = [rootNeedleLayer.presentationLayer valueForKeyPath:@"transform.rotation.z"];
+        CGFloat needleAngleForLastValue = currentLayerRotation ? [currentLayerRotation floatValue] : [self needleAngleForValue:lastValue];
+        CGFloat needleAngleForUpdatedValue = [self needleAngleForValue:updatedValue];
+        CGFloat needleAngleForMiddleValue = [self needleAngleForValue:middleValue];
+        
+        animation.values = @[[NSValue valueWithCATransform3D:CATransform3DMakeRotation(needleAngleForLastValue, 0, 0, 1.0)],
+                             [NSValue valueWithCATransform3D:CATransform3DMakeRotation(needleAngleForMiddleValue, 0, 0, 1.0)],
+                             [NSValue valueWithCATransform3D:CATransform3DMakeRotation(needleAngleForUpdatedValue, 0, 0, 1.0)]];
         
         if (![_style conformsToProtocol:@protocol(WMGaugeViewStyle)] || ![_style needleLayer:rootNeedleLayer willMoveAnimated:animated duration:duration animation:animation])
         {
